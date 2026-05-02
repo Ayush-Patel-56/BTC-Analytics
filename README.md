@@ -5,7 +5,7 @@ A professional quantitative analysis engine for predicting next-hour Bitcoin pri
 ## Dashboard Preview
 | Light Mode | Dark Mode |
 | :--- | :--- |
-| ![Dark Mode](dashboard_light.png) | ![Light Mode](dashboard_dark.png) |
+| ![Light Mode](dashboard_light.png) | ![Dark Mode](dashboard_dark.png) |
 
 ## Features
 - **FIGARCH(1, d, 1) Engine**: Captures the long-memory volatility characteristic of Bitcoin.
