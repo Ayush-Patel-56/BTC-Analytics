@@ -11,62 +11,66 @@ from model import predict_next_hour
 # Page config
 st.set_page_config(page_title="BTC Analytics", layout="wide")
 
-# Theme-Aware Professional Styling
+# Charcoal Minimal Styling
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
 
-    /* Global Typography */
     html, body, [data-testid="stAppViewContainer"] {
         font-family: 'Inter', sans-serif;
     }
 
     /* Container refinement */
     .block-container {
-        padding-top: 2rem !important;
-        max-width: 1100px !important;
+        padding-top: 3rem !important;
+        max-width: 1000px !important;
     }
 
-    /* Refined Metric Cards */
+    /* Minimal Metric Styling (Theme Responsive) */
     [data-testid="stMetric"] {
-        background-color: var(--secondary-background-color);
-        padding: 1.5rem;
-        border-radius: 12px;
-        border: 1px solid rgba(128, 128, 128, 0.1);
-        transition: border-color 0.3s ease;
-    }
-    
-    [data-testid="stMetric"]:hover {
-        border-color: #4dabf7;
+        background: none;
+        border: none;
+        padding: 0;
     }
 
-    /* Professional Headers */
-    .main-header {
+    [data-testid="stMetricLabel"] {
+        font-size: 0.8rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05rem;
+        opacity: 0.6;
+    }
+
+    [data-testid="stMetricValue"] {
+        font-size: 2.2rem !important;
+        font-weight: 500 !important;
+    }
+
+    .main-title {
+        font-size: 1.8rem;
+        font-weight: 600;
         margin-bottom: 2.5rem;
     }
 
-    .section-title {
-        font-size: 0.85rem;
+    .section-label {
+        font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.05rem;
-        color: #7d7d7d;
+        opacity: 0.4;
         margin-bottom: 1.5rem;
-        margin-top: 2rem;
+        margin-top: 3.5rem;
+        letter-spacing: 0.12rem;
     }
 
-    /* Expander refinement */
-    .stExpander {
-        border: 1px solid rgba(128, 128, 128, 0.1) !important;
-        border-radius: 12px !important;
+    /* Sidebar minimal adjustment */
+    [data-testid="stSidebar"] {
+        border-right: 1px solid rgba(128, 128, 128, 0.1);
+    }
+
+    hr {
+        opacity: 0.1;
     }
     </style>
     """, unsafe_allow_html=True)
-
-# App Header
-st.title("BTC Range Forecast")
-st.markdown("FIGARCH-GBM Engine")
-st.markdown("---")
 
 def load_backtest_metrics():
     if os.path.exists('backtest_results.jsonl'):
@@ -75,46 +79,38 @@ def load_backtest_metrics():
             for line in f:
                 results.append(json.loads(line))
         df = pd.DataFrame(results)
-        coverage = df['coverage_95'].mean()
-        avg_width = df['width_95'].mean()
-        winkler = df['winkler_95'].mean()
-        return coverage, avg_width, winkler
-    return 0.95, 200.0, 350.0 
+        return df['coverage_95'].mean(), df['width_95'].mean()
+    return 0.95, 200.0
 
-cov, width, wink = load_backtest_metrics()
+cov, width = load_backtest_metrics()
 
-# Live Data & Prediction
 @st.cache_data(ttl=60)
-def get_data_and_predict():
+def get_data():
     df = get_binance_klines(limit=500)
-    pred = predict_next_hour(df['close'], n_sims=10000)
+    pred = predict_next_hour(df['close'])
     return df, pred
 
-with st.spinner("Calculating variances..."):
-    df, pred = get_data_and_predict()
+df, pred = get_data()
 
-# Sidebar: Backtest Validation
+# Layout
+st.markdown('<div class="main-title">BTC Forecast</div>', unsafe_allow_html=True)
+
 with st.sidebar:
-    st.markdown('<div class="section-title" style="margin-top:0;">Backtest Performance</div>', unsafe_allow_html=True)
-    st.metric("Coverage Accuracy", f"{cov:.2%}")
-    st.metric("Mean Range Width", f"${width:,.0f}")
-    st.metric("Winkler Score", f"{wink:.1f}")
-    
+    st.markdown('<div class="section-label">Model Accuracy</div>', unsafe_allow_html=True)
+    st.metric("Coverage", f"{cov:.1%}")
+    st.metric("Range", f"${width:,.0f}")
     st.markdown("---")
-    st.caption("Model: FIGARCH (Student-t)")
-    st.caption("Monte Carlo: 10k Paths")
+    st.caption("FIGARCH-GBM Engine")
 
-# Main Content
-st.markdown('<div class="section-title" style="margin-top:0;">Forecast: Next Hour</div>', unsafe_allow_html=True)
-
+# Metrics
 m1, m2, m3 = st.columns(3)
-m1.metric("Spot Price", f"${pred['current_price']:,.2f}")
-m2.metric("Target Low (95%)", f"${pred['predicted_low']:,.0f}", delta=f"{pred['predicted_low'] - pred['current_price']:,.2f}", delta_color="normal")
-m3.metric("Target High (95%)", f"${pred['predicted_high']:,.0f}", delta=f"{pred['predicted_high'] - pred['current_price']:,.2f}", delta_color="normal")
+m1.metric("Spot", f"${pred['current_price']:,.2f}")
+m2.metric("Low", f"${pred['predicted_low']:,.0f}")
+m3.metric("High", f"${pred['predicted_high']:,.0f}")
 
-st.markdown('<div class="section-title">Visual Analysis</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-label">Analysis</div>', unsafe_allow_html=True)
 
-# Chart with theme-aware Plotly
+# Plotly Minimal
 last_50 = df.tail(50)
 fig = go.Figure()
 
@@ -122,60 +118,68 @@ next_hour = last_50.index[-1] + pd.Timedelta(hours=1)
 last_time = last_50.index[-1]
 last_price = last_50['close'].iloc[-1]
 
-# Prediction Ribbon
+# Prediction Band
 fig.add_trace(go.Scatter(
-    x=[last_time, next_hour], y=[last_price, pred['predicted_high']],
-    mode='lines', line=dict(width=0), showlegend=False, hoverinfo='skip'
+    x=[last_time, next_hour], y=[pred['predicted_high'], pred['predicted_high']],
+    mode='lines', line=dict(color='#333', width=1, dash='dot'), showlegend=False
 ))
 fig.add_trace(go.Scatter(
-    x=[last_time, next_hour], y=[last_price, pred['predicted_low']],
-    mode='lines', line=dict(width=0), fill='tonexty',
-    fillcolor='rgba(77, 171, 247, 0.1)', name='Prediction Band', hoverinfo='skip'
+    x=[last_time, next_hour], y=[pred['predicted_low'], pred['predicted_low']],
+    mode='lines', line=dict(color='#333', width=1, dash='dot'), showlegend=False
 ))
 
 # Price line
 fig.add_trace(go.Scatter(
     x=last_50.index, y=last_50['close'],
-    mode='lines+markers', name='Actual Price', 
-    line=dict(color='#4dabf7', width=2),
-    marker=dict(size=4)
+    mode='lines', name='Price', 
+    line=dict(color='#4dabf7', width=1.5)
 ))
 
-# Forecast marker
+# Forecast Range
 fig.add_trace(go.Scatter(
     x=[next_hour, next_hour], y=[pred['predicted_low'], pred['predicted_high']],
-    mode='lines', name='Forecast Range',
-    line=dict(color='#ff6b6b', width=4)
+    mode='lines', name='Forecast',
+    line=dict(color='#fff', width=2)
 ))
 
 fig.update_layout(
-    template="none", # Let it adapt to streamlit theme
     paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)',
-    xaxis=dict(showgrid=False),
-    yaxis=dict(showgrid=True, gridcolor='rgba(128,128,128,0.1)'),
-    margin=dict(l=0, r=0, t=10, b=0),
-    height=450,
-    hovermode="x unified"
+    xaxis=dict(
+        showgrid=False, 
+        zeroline=False,
+    ),
+    yaxis=dict(
+        showgrid=True, 
+        gridcolor='rgba(128,128,128,0.1)', 
+        zeroline=False,
+    ),
+    margin=dict(l=0, r=0, t=0, b=0),
+    height=400,
+    showlegend=False
 )
 st.plotly_chart(fig, use_container_width=True)
 
-st.markdown('<div class="section-title">Session History</div>', unsafe_allow_html=True)
-with st.expander("Show Log"):
-    history_file = 'prediction_history.json'
-    if os.path.exists(history_file):
-        with open(history_file, 'r') as f:
-            hist = json.load(f)
-        st.dataframe(pd.DataFrame(hist).tail(10), use_container_width=True)
+# Log
+st.markdown('<div class="section-label">Session Intelligence</div>', unsafe_allow_html=True)
+history_file = 'prediction_history.json'
+if os.path.exists(history_file):
+    with open(history_file, 'r') as f:
+        hist = json.load(f)
+    df_hist = pd.DataFrame(hist).tail(10)
+    # Ensure columns are in order
+    cols = ['Time (UTC)', 'Spot Price', 'Range Low', 'Range High']
+    # Filter to only show records with all matching columns to avoid NaN fragmentation
+    df_hist = df_hist[[c for c in cols if c in df_hist.columns]]
+    st.dataframe(df_hist, use_container_width=True)
 
 # Persistence
 def save_prediction(pred):
-    history_file = 'prediction_history.json'
     new_record = {
         'Time (UTC)': datetime.now().strftime('%H:%M:%S'),
         'Spot Price': f"${pred['current_price']:,.2f}",
-        'Range Low': f"${pred['predicted_low']:,.2f}",
-        'Range High': f"${pred['predicted_high']:,.2f}"
+        'Range Low': f"${pred['predicted_low']:,.0f}",
+        'Range High': f"${pred['predicted_high']:,.0f}"
     }
     history = []
     if os.path.exists(history_file):
@@ -183,8 +187,7 @@ def save_prediction(pred):
             try: history = json.load(f)
             except: history = []
     history.append(new_record)
-    history = history[-20:] # Show last 20
     with open(history_file, 'w') as f:
-        json.dump(history, f)
+        json.dump(history[-20:], f)
 
 save_prediction(pred)
