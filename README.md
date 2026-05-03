@@ -3,6 +3,7 @@
 A professional quantitative analysis engine for predicting next-hour Bitcoin price ranges using FIGARCH volatility modeling and Monte Carlo simulations. Built for the AlphaI × Polaris Challenge.
 
 ## Dashboard Preview
+
 | Light Mode | Dark Mode |
 | :--- | :--- |
 | ![Light Mode](dashboard_light.png) | ![Dark Mode](dashboard_dark.png) |

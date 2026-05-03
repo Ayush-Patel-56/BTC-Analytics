@@ -121,11 +121,11 @@ last_price = last_50['close'].iloc[-1]
 # Prediction Band
 fig.add_trace(go.Scatter(
     x=[last_time, next_hour], y=[pred['predicted_high'], pred['predicted_high']],
-    mode='lines', line=dict(color='#333', width=1, dash='dot'), showlegend=False
+    mode='lines', line=dict(color='rgba(128,128,128,0.2)', width=1, dash='dot'), showlegend=False
 ))
 fig.add_trace(go.Scatter(
     x=[last_time, next_hour], y=[pred['predicted_low'], pred['predicted_low']],
-    mode='lines', line=dict(color='#333', width=1, dash='dot'), showlegend=False
+    mode='lines', line=dict(color='rgba(128,128,128,0.2)', width=1, dash='dot'), showlegend=False
 ))
 
 # Price line
@@ -139,7 +139,7 @@ fig.add_trace(go.Scatter(
 fig.add_trace(go.Scatter(
     x=[next_hour, next_hour], y=[pred['predicted_low'], pred['predicted_high']],
     mode='lines', name='Forecast',
-    line=dict(color='#fff', width=2)
+    line=dict(color='rgba(128,128,128,0.8)', width=2)
 ))
 
 fig.update_layout(
