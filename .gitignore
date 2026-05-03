@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv
+env/
+venv/
+ENV/
+venv.bak/
+.idea/
+.vscode/
+.streamlit/
+*.log
+prediction_history.json
+backtest_results.jsonl
